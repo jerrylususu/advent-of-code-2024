@@ -56,10 +56,13 @@ fn check_arr(arr: &Vec<i64>) -> Result<bool, Box<dyn Error>> {
 fn solve_p1(input_path: &str) -> Result<usize, Box<dyn Error>> {
     let arrs = read_file(input_path)?;
 
-    // arrs.iter().filter(|arr| check_arr(arr)).count()
-    arrs.iter().try_fold(0, |count, arr| {
-        Ok(if check_arr(arr)? { count + 1 } else { count })
-    })
+    arrs.iter().map(|arr| 
+        match check_arr(arr) {
+            Ok(true) => Ok(1),
+            Ok(false) => Ok(0),
+            Err(e) => return Err(e),
+        }
+    ).sum()
 }
 
 fn check_arr_with_skip_idx(arr: &Vec<i64>) -> Result<bool, Box<dyn Error>> {
@@ -80,9 +83,13 @@ fn check_arr_with_skip_idx(arr: &Vec<i64>) -> Result<bool, Box<dyn Error>> {
 
 fn solve_p2(input_path: &str) -> Result<usize, Box<dyn Error>> {
     let arrs = read_file(input_path)?;
-    arrs.iter().try_fold(0, |count, arr| {
-        Ok(if check_arr_with_skip_idx(arr)? { count + 1 } else { count })
-    })
+    arrs.iter().map(|arr| 
+        match check_arr_with_skip_idx(arr) {
+            Ok(true) => Ok(1),
+            Ok(false) => Ok(0),
+            Err(e) => return Err(e),
+        }
+    ).sum()
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
