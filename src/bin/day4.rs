@@ -19,14 +19,17 @@ fn read_file(path: &str) -> Result<Grid, Box<dyn Error>> {
 }
 
 fn pos_in_grid(grid: &Grid, x: i32, y: i32) -> bool {
-    let n_rows: Option<i32> = grid.len().try_into().ok();
-    let n_cols: Option<i32> = grid[0].len().try_into().ok();
+    let n_rows_opt: Option<i32> = grid.len().try_into().ok();
+    let n_cols_opt: Option<i32> = grid[0].len().try_into().ok();
 
-    if n_rows.is_none() || n_cols.is_none() {
+    let Some(n_rows) = n_rows_opt else {
         return false;
-    }
+    };
+    let Some(n_cols) = n_cols_opt else {
+        return false;
+    };
 
-    x >= 0 && x < n_rows.unwrap() && y >= 0 && y < n_cols.unwrap()
+    x >= 0 && x < n_rows && y >= 0 && y < n_cols
 }
 
 // Part 1 functions
