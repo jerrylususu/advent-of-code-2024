@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead};
+use rayon::prelude::*;
 
 fn read_file(path: &str) -> Result<Vec<String>, Box<dyn Error>> {
     let file = File::open(path)?;
@@ -106,25 +107,26 @@ fn solve_p1(path: &str) -> Result<i64, Box<dyn Error>> {
 fn solve_p2(path: &str) -> Result<i64, Box<dyn Error>> {
     let lines = read_file(path)?;
     let parsed_lines = parse_lines(lines)?;
-    let mut total = 0;
     
-    let supported_ops = [Op::Add, Op::Multiply, Op::Concat];
-    
-    for (i, (target, values)) in parsed_lines.iter().enumerate() {
-        println!("at {}", i);
-        
-        let n_space = values.len() - 1;
-        let all_ops = make_expr_ops(n_space, &supported_ops);
-        
-        for ops in all_ops {
-            if let Some(result) = eval_expr(values, &ops, Some(*target)) {
-                if result == *target {
-                    total += target;
-                    break;
+    let total: i64 = parsed_lines
+        .par_iter()
+        .enumerate()
+        .map(|(i, (target, values))| {
+            println!("at {}", i);
+            
+            let n_space = values.len() - 1;
+            let all_ops = make_expr_ops(n_space, &[Op::Add, Op::Multiply, Op::Concat]);
+            
+            for ops in all_ops {
+                if let Some(result) = eval_expr(values, &ops, Some(*target)) {
+                    if result == *target {
+                        return *target;
+                    }
                 }
             }
-        }
-    }
+            0
+        })
+        .sum();
     
     Ok(total)
 }
