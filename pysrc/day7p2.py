@@ -1,4 +1,6 @@
 from itertools import product
+from multiprocessing import Pool
+import os
 
 with open("input.txt", "r", encoding="u8") as f:
     lines = f.readlines()
@@ -34,18 +36,27 @@ def make_expr(values):
                 expr.append(comb[i])
         yield expr
 
-total = 0
-
-for i, line in enumerate(lines):
+def process_line(line_data):
+    i, line = line_data
     target, values = line.split(":")
     values = list(map(int, values.split()))
     target = int(target)
     print(i)
     for expr in make_expr(values):
         if eval_expr(expr, target) == target:
-            total += target
-            break
+            return target
+    return 0
 
-print(total)
+def main():
+    num_processes = os.cpu_count()
+    with Pool(num_processes) as pool:
+        line_data = list(enumerate(lines))
+        results = pool.map(process_line, line_data)
+        total = sum(results)
+    
+    print(total)
+
+if __name__ == '__main__':
+    main()
     
     
