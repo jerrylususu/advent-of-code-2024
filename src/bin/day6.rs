@@ -1,6 +1,7 @@
 use std::error::Error;
 use std::fs::File;
 use std::io::{self, BufRead};
+use rayon::prelude::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
 enum Direction {
@@ -125,21 +126,22 @@ fn solve_p2(path: &str) -> Result<i32, Box<dyn Error>> {
     let initial_pos = find_initial_position(&orig_grid);
     let n_row = orig_grid.len();
     let n_col = orig_grid[0].len();
-    let mut total_placement = 0;
 
-    for i in 0..n_row {
-        // slow, show progress
-        println!("{}", i);
-        for j in 0..n_col {
-            let mut grid = orig_grid.clone();
-            grid[i][j] = '#';
-            if path_is_circle(&grid, initial_pos) {
-                total_placement += 1;
-            }
-        }
-    }
+    let total_placement: usize = (0..n_row)
+        .into_par_iter()
+        .map(|i| {
+            println!("on row {}", i);
+            (0..n_col)
+                .filter(|&j| {
+                    let mut grid = orig_grid.clone();
+                    grid[i][j] = '#';
+                    path_is_circle(&grid, initial_pos)
+                })
+                .count()
+        })
+        .sum();
 
-    Ok(total_placement)
+    Ok(total_placement as i32)
 }
 
 fn main() -> Result<(), Box<dyn Error>> {
