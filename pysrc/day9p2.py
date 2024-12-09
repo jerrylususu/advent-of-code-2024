@@ -1,5 +1,4 @@
 from enum import Enum
-from bisect import bisect_left
 from dataclasses import dataclass
 
 with open("input.txt", "r", encoding="u8") as f:
@@ -40,7 +39,7 @@ class EmptySpace:
     begin: int
 
     def __lt__(self, other):
-        return self.length < other.length or (self.length == other.length and self.begin < other.begin)
+        return self.begin < other.begin
 
 for idx, length in enumerate(files):
     if state == Entry.FILE:
@@ -55,7 +54,7 @@ for idx, length in enumerate(files):
         pos += length
         state = Entry.FILE
 
-print("len", len(arr))
+# print("len", len(arr))
 
 def save_to_file(arr, filename):
     with open(filename, "w", encoding="u8") as f:
@@ -63,7 +62,7 @@ def save_to_file(arr, filename):
             f.write(f"{i:06d}: {arr[i]}\n")
 
 # print(arr)
-save_to_file(arr, "before.txt")
+# save_to_file(arr, "before.txt")
 
 empty_spaces.sort()
 # print(empty_spaces)
@@ -80,56 +79,31 @@ def do_range_swap(src_begin, target_begin, len):
 
 
 def find_first_empty_space_having_enough_length(length):
-    begin = 0
-    current_empty_len = 0
-    for i in range(len(arr)):
-        if arr[i] is not None:
-            begin = i + 1
-            current_empty_len = 0
-            continue
-
-        current_empty_len += 1
-        if current_empty_len >= length:
-            return begin
-    return None
-
-
-
-    # for empty_space in empty_spaces:
-    #     if empty_space.length >= length:
-    #         return empty_space
-    # return None
-
-    # pos = bisect_left(empty_spaces, EmptySpace(length, 0))
-    # if pos < len(empty_spaces):
-    #     return pos, empty_spaces[pos]
-    # return None, None
+    for idx, empty_space in enumerate(empty_spaces):
+        if empty_space.length >= length:
+            return idx, empty_space
+    return None, None
 
 # do defrag
-# for i in range(max_file_id, -1, -1):
-#     file_info = file_id_to_file_info_map[i]
-#     empty_pos, empty_space = find_first_empty_space_having_enough_length(file_info.length)
-#     if empty_space is not None:
-#         do_range_swap(file_info.begin, empty_space.begin, file_info.length)
-#         empty_spaces.pop(empty_pos)
-#         remaining_empty_space_length = empty_space.length - file_info.length
-#         if remaining_empty_space_length > 0:
-#             new_empty_begin = empty_space.begin + file_info.length
-#             empty_spaces.append(EmptySpace(remaining_empty_space_length, new_empty_begin))
-#             empty_spaces.sort()
-
-
 for i in range(max_file_id, -1, -1):
+        
     file_info = file_id_to_file_info_map[i]
-    empty_space_begin = find_first_empty_space_having_enough_length(file_info.length)
-    if empty_space_begin is not None and empty_space_begin < file_info.begin:
-        do_range_swap(file_info.begin, empty_space_begin, file_info.length)
+    empty_pos, empty_space = find_first_empty_space_having_enough_length(file_info.length)
+
+    if empty_space is not None and empty_space.begin < file_info.begin:
+        do_range_swap(file_info.begin, empty_space.begin, file_info.length)
+        empty_spaces.pop(empty_pos)
+        remaining_empty_space_length = empty_space.length - file_info.length
+        if remaining_empty_space_length > 0:
+            new_empty_begin = empty_space.begin + file_info.length
+            empty_spaces.append(EmptySpace(remaining_empty_space_length, new_empty_begin))
+            empty_spaces.sort()
 
     # print(arr)
     print("working on file", i)
 
 
-save_to_file(arr, "after.txt")
+# save_to_file(arr, "after.txt")
 
 
 def calc_hash():
